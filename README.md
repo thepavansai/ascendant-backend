@@ -111,8 +111,12 @@ cd ascendant-backend
 cp .env.example .env
 ```
 
-Open `.env` and fill in:
+Fill in all values — never leave secrets blank:
 ```env
+DB_NAME=ascendant
+DB_USER=ascendant_user
+DB_PASSWORD=your_db_password
+DB_PORT=5432
 DB_URL=jdbc:postgresql://localhost:5432/ascendant
 DB_USER=ascendant_user
 DB_PASSWORD=ascendant_pass
@@ -208,7 +212,7 @@ ascendant-backend/
 │
 ├── src/test/                                 # Unit tests
 ├── docker-compose.yml                        # PostgreSQL + Redis
-├── .env.example                              # Environment variable template
+├── .env.example                             
 └── pom.xml                                   # Maven dependencies
 ```
 
@@ -360,6 +364,9 @@ docker-compose up -d
 
 # Stop
 docker-compose down
+
+# Pass env file explicitly (if needed)
+docker-compose --env-file .env up -d
 
 # Wipe data and start fresh
 docker-compose down -v && docker-compose up -d
