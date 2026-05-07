@@ -1,0 +1,81 @@
+spring:
+  profiles:
+    active: dev
+
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        default_schema: public
+
+  sql:
+    init:
+      mode: never
+
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD}
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 4
+
+  jackson:
+    default-property-inclusion: non_null
+    serialization:
+      write-dates-as-timestamps: false
+
+server:
+  port: 8080
+  error:
+    include-message: always
+    include-binding-errors: always
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+    access-token-expiry-ms: 900000       # 15 minutes
+    refresh-token-expiry-ms: 604800000   # 7 days
+
+  ai:
+    claude:
+      api-key: ${CLAUDE_API_KEY}
+      api-url: ${AI_API_URL}
+      model: ${AI_MODEL}
+      max-output-tokens: ${AI_MAX_TOKENS:300}
+      temperature: ${AI_TEMPERATURE:1}
+    daily-limit-per-user: ${AI_DAILY_LIMIT:10}
+
+  evaluation:
+    async-pool-size: 10
+    async-queue-capacity: 50
+    timeout-seconds: 30
+
+  cache:
+    mission-ttl-seconds: 3600  # 1 hour
+
+  cors:
+    allowed-origins: ${FRONTEND_URL}
+
+logging:
+  level:
+    com.ascendant: DEBUG
+    org.springframework.security: WARN
+    org.hibernate.SQL: WARN
