@@ -1,0 +1,820 @@
+{
+  "info": {
+    "name": "Ascendant Initiative API",
+    "description": "Complete API collection for the Ascendant Initiative backend — a gamified cognitive training platform for kids aged 9-12.\n\n## Setup\n1. Set the `baseUrl` variable to `http://localhost:8080`\n2. Register a parent, then a child\n3. Token variables auto-fill after login\n\n## Flow\nRegister → Login → List Missions → Submit Response → Poll Result → Check Profile → Parent Dashboard → Admin",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "variable": [
+    { "key": "baseUrl",      "value": "http://localhost:8080", "type": "string" },
+    { "key": "childToken",   "value": "", "type": "string" },
+    { "key": "parentToken",  "value": "", "type": "string" },
+    { "key": "adminToken",   "value": "", "type": "string" },
+    { "key": "childId",      "value": "", "type": "string" },
+    { "key": "parentId",     "value": "", "type": "string" },
+    { "key": "missionId",    "value": "", "type": "string" },
+    { "key": "scenarioId",   "value": "", "type": "string" },
+    { "key": "responseId",   "value": "", "type": "string" },
+    { "key": "newMissionId", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "🔐 Auth",
+      "item": [
+        {
+          "name": "Register Parent",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const res = pm.response.json();",
+                  "    pm.collectionVariables.set('parentToken', res.token);",
+                  "    pm.collectionVariables.set('parentId', res.user.id);",
+                  "    pm.test('Parent registered successfully', () => pm.response.to.have.status(201));",
+                  "    pm.test('Token received', () => pm.expect(res.token).to.be.a('string'));",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Test Parent\",\n    \"email\": \"parent@test.com\",\n    \"password\": \"Test@1234\",\n    \"role\": \"PARENT\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/register", "host": ["{{baseUrl}}"], "path": ["api", "auth", "register"] },
+            "description": "Register a new parent account. Token is auto-saved to parentToken variable."
+          }
+        },
+        {
+          "name": "Register Child",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const res = pm.response.json();",
+                  "    pm.collectionVariables.set('childToken', res.token);",
+                  "    pm.collectionVariables.set('childId', res.user.id);",
+                  "    pm.test('Child registered successfully', () => pm.response.to.have.status(201));",
+                  "    pm.test('Player profile created', () => pm.expect(res.user.id).to.be.a('string'));",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Test Child\",\n    \"email\": \"child@test.com\",\n    \"password\": \"Test@1234\",\n    \"role\": \"CHILD\",\n    \"parentEmail\": \"parent@test.com\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/register", "host": ["{{baseUrl}}"], "path": ["api", "auth", "register"] },
+            "description": "Register a new child account linked to a parent. Token is auto-saved to childToken variable."
+          }
+        },
+        {
+          "name": "Login — Child",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const res = pm.response.json();",
+                  "    pm.collectionVariables.set('childToken', res.token);",
+                  "    pm.collectionVariables.set('childId', res.user.id);",
+                  "    pm.test('Login successful', () => pm.response.to.have.status(200));",
+                  "    pm.test('Fresh token received', () => pm.expect(res.token).to.be.a('string'));",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"child@test.com\",\n    \"password\": \"Test@1234\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] },
+            "description": "Login as child. Fresh token auto-saved to childToken."
+          }
+        },
+        {
+          "name": "Login — Parent",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const res = pm.response.json();",
+                  "    pm.collectionVariables.set('parentToken', res.token);",
+                  "    pm.collectionVariables.set('parentId', res.user.id);",
+                  "    pm.test('Login successful', () => pm.response.to.have.status(200));",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"parent@test.com\",\n    \"password\": \"Test@1234\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] },
+            "description": "Login as parent. Token auto-saved to parentToken."
+          }
+        },
+        {
+          "name": "Login — Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const res = pm.response.json();",
+                  "    pm.collectionVariables.set('adminToken', res.token);",
+                  "    pm.test('Admin login successful', () => pm.response.to.have.status(200));",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"admin@ascendant.app\",\n    \"password\": \"Admin@1234\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] },
+            "description": "Login as admin. Token auto-saved to adminToken."
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"refresh_token\": \"<paste refresh token here>\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/refresh", "host": ["{{baseUrl}}"], "path": ["api", "auth", "refresh"] },
+            "description": "Get a new access token using a refresh token. Note: use 'refresh_token' (snake_case)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "🎯 Missions",
+      "item": [
+        {
+          "name": "List All Missions",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const res = pm.response.json();",
+                  "    pm.test('Returns mission list', () => pm.expect(res).to.be.an('array'));",
+                  "    pm.test('Has at least one mission', () => pm.expect(res.length).to.be.above(0));",
+                  "    if (res.length > 0) {",
+                  "        pm.collectionVariables.set('missionId', res[0].id);",
+                  "        console.log('Auto-set missionId to:', res[0].id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{childToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/missions", "host": ["{{baseUrl}}"], "path": ["api", "missions"] },
+            "description": "Returns all active missions. First mission ID is auto-saved to missionId variable."
+          }
+        },
+        {
+          "name": "Get Next Mission",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{childToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/missions/next", "host": ["{{baseUrl}}"], "path": ["api", "missions", "next"] },
+            "description": "Returns the next incomplete mission for the authenticated child."
+          }
+        },
+        {
+          "name": "Get Mission Detail",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const res = pm.response.json();",
+                  "    pm.collectionVariables.set('missionId', res.id);",
+                  "    pm.collectionVariables.set('scenarioId', res.scenario.id);",
+                  "    pm.test('Mission detail returned', () => pm.response.to.have.status(200));",
+                  "    pm.test('Scenario present', () => pm.expect(res.scenario).to.be.an('object'));",
+                  "    console.log('missionId:', res.id);",
+                  "    console.log('scenarioId:', res.scenario.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{childToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/missions/{{missionId}}", "host": ["{{baseUrl}}"], "path": ["api", "missions", "{{missionId}}"] },
+            "description": "Get full mission detail including scenario. missionId and scenarioId are auto-saved for Step 8."
+          }
+        },
+        {
+          "name": "Get Mission Detail — Lemonade Stand",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const res = pm.response.json();",
+                  "    pm.collectionVariables.set('missionId', res.id);",
+                  "    pm.collectionVariables.set('scenarioId', res.scenario.id);",
+                  "    console.log('missionId:', res.id, 'scenarioId:', res.scenario.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{childToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/missions/a1000000-0000-0000-0000-000000000001", "host": ["{{baseUrl}}"], "path": ["api", "missions", "a1000000-0000-0000-0000-000000000001"] },
+            "description": "Get The Lemonade Stand mission directly by its seed ID."
+          }
+        },
+        {
+          "name": "Get Mission Detail — Broken Bridge",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const res = pm.response.json();",
+                  "    pm.collectionVariables.set('missionId', res.id);",
+                  "    pm.collectionVariables.set('scenarioId', res.scenario.id);",
+                  "    console.log('missionId:', res.id, 'scenarioId:', res.scenario.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{childToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/missions/a1000000-0000-0000-0000-000000000002", "host": ["{{baseUrl}}"], "path": ["api", "missions", "a1000000-0000-0000-0000-000000000002"] },
+            "description": "Get The Broken Bridge mission directly by its seed ID."
+          }
+        },
+        {
+          "name": "Get Mission Detail — 404 Test",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Returns 404 for unknown mission', () => pm.response.to.have.status(404));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{childToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/missions/00000000-0000-0000-0000-000000000000", "host": ["{{baseUrl}}"], "path": ["api", "missions", "00000000-0000-0000-0000-000000000000"] },
+            "description": "Should return 404 Not Found."
+          }
+        }
+      ]
+    },
+    {
+      "name": "📝 Responses & Evaluation",
+      "item": [
+        {
+          "name": "Submit Response",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 202) {",
+                  "    const res = pm.response.json();",
+                  "    pm.collectionVariables.set('responseId', res.responseId);",
+                  "    pm.test('Response accepted', () => pm.response.to.have.status(202));",
+                  "    pm.test('Status is PENDING', () => pm.expect(res.status).to.equal('PENDING'));",
+                  "    pm.test('responseId received', () => pm.expect(res.responseId).to.be.a('string'));",
+                  "    console.log('responseId auto-saved:', res.responseId);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{childToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"userId\": \"{{childId}}\",\n    \"missionId\": \"{{missionId}}\",\n    \"scenarioId\": \"{{scenarioId}}\",\n    \"answerText\": \"I think Person B is right because you should always check the whole bridge before fixing one part. If another section is also weak, fixing just the middle will not make it safe. Therefore the village should follow these steps. First, split the 20 adults into two groups. One group inspects the entire bridge while the other group gathers all the tools and planks. Second, if the rest of the bridge is safe, use the wooden planks to cover the 3 metre gap. Since each plank is 2 metres long, they need to overlap them so they reach across. Third, use the nails and hammer to fix the planks firmly so they do not slip. Then tie rope on both sides as a handrail so children can hold on while crossing.\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/responses", "host": ["{{baseUrl}}"], "path": ["api", "responses"] },
+            "description": "Submit an answer to a mission. Returns 202 immediately. responseId is auto-saved. Poll the evaluation endpoint until status = DONE."
+          }
+        },
+        {
+          "name": "Poll Evaluation Result",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "pm.test('Response OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Has status field', () => pm.expect(res.status).to.be.oneOf(['PENDING', 'DONE', 'FAILED']));",
+                  "if (res.status === 'DONE') {",
+                  "    pm.test('Has evaluation', () => pm.expect(res.evaluation).to.be.an('object'));",
+                  "    pm.test('Has finalScore', () => pm.expect(res.evaluation.finalScore).to.be.a('number'));",
+                  "    pm.test('AI was used', () => pm.expect(res.evaluation.aiTokensUsed).to.be.above(0));",
+                  "    console.log('✅ DONE! finalScore:', res.evaluation.finalScore);",
+                  "    console.log('ruleScore:', res.evaluation.ruleScore);",
+                  "    console.log('aiScore:', res.evaluation.aiScore);",
+                  "    console.log('feedback:', res.evaluation.feedbackText);",
+                  "} else {",
+                  "    console.log('⏳ Still PENDING... wait 3s and try again');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{childToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/responses/{{responseId}}/evaluation", "host": ["{{baseUrl}}"], "path": ["api", "responses", "{{responseId}}", "evaluation"] },
+            "description": "Poll this every 3-5 seconds until status = DONE. responseId is auto-filled from Submit Response."
+          }
+        },
+        {
+          "name": "Submit Response — Too Short (400 Test)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Returns 400 for short answer', () => pm.response.to.have.status(400));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{childToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"userId\": \"{{childId}}\",\n    \"missionId\": \"{{missionId}}\",\n    \"scenarioId\": \"{{scenarioId}}\",\n    \"answerText\": \"Too short\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/responses", "host": ["{{baseUrl}}"], "path": ["api", "responses"] },
+            "description": "Should return 400 Bad Request — answer is too short."
+          }
+        }
+      ]
+    },
+    {
+      "name": "👤 Player",
+      "item": [
+        {
+          "name": "Get Player Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const res = pm.response.json();",
+                  "    pm.test('Profile returned', () => pm.response.to.have.status(200));",
+                  "    pm.test('Has XP', () => pm.expect(res.xp).to.be.a('number'));",
+                  "    pm.test('Has level', () => pm.expect(res.level).to.be.a('number'));",
+                  "    pm.test('Has identity', () => pm.expect(res.identity_type).to.be.a('string'));",
+                  "    console.log('XP:', res.xp, '| Level:', res.level, '| Identity:', res.identity_type);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{childToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/player/{{childId}}/profile", "host": ["{{baseUrl}}"], "path": ["api", "player", "{{childId}}", "profile"] },
+            "description": "Returns full player profile — XP, level, attributes, streak, identity type."
+          }
+        },
+        {
+          "name": "Get Progression History",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Progression returned', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{childToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/player/{{childId}}/progression?limit=10", "host": ["{{baseUrl}}"], "path": ["api", "player", "{{childId}}", "progression"], "query": [{ "key": "limit", "value": "10" }] },
+            "description": "Returns list of completed missions with XP earned and scores."
+          }
+        },
+        {
+          "name": "Get Weekly Stats",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const res = pm.response.json();",
+                  "    pm.test('Weekly stats returned', () => pm.response.to.have.status(200));",
+                  "    console.log('Missions this week:', res.missions_completed);",
+                  "    console.log('XP this week:', res.total_xp_earned);",
+                  "    console.log('Avg score:', res.average_final_score);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{childToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/player/{{childId}}/stats/weekly", "host": ["{{baseUrl}}"], "path": ["api", "player", "{{childId}}", "stats", "weekly"] },
+            "description": "Returns weekly performance — missions completed, XP earned, avg score, strongest/weakest attribute."
+          }
+        }
+      ]
+    },
+    {
+      "name": "👨‍👩‍👧 Parent",
+      "item": [
+        {
+          "name": "Approve Child",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Child approved', () => pm.response.to.have.status(200));",
+                  "const res = pm.response.json();",
+                  "pm.test('Success message', () => pm.expect(res.message).to.include('approved'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{parentToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/parent/{{parentId}}/approve/{{childId}}", "host": ["{{baseUrl}}"], "path": ["api", "parent", "{{parentId}}", "approve", "{{childId}}"] },
+            "description": "Approve the parent-child link. Must be done before child appears in dashboard. No request body needed."
+          }
+        },
+        {
+          "name": "Parent Dashboard",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const res = pm.response.json();",
+                  "    pm.test('Dashboard returned', () => pm.response.to.have.status(200));",
+                  "    pm.test('Has children array', () => pm.expect(res.children).to.be.an('array'));",
+                  "    if (res.children.length > 0) {",
+                  "        console.log('Child name:', res.children[0].child_name);",
+                  "        console.log('Child level:', res.children[0].level);",
+                  "        console.log('Child XP:', res.children[0].xp);",
+                  "        console.log('Identity:', res.children[0].identity_type);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{parentToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/parent/{{parentId}}/dashboard", "host": ["{{baseUrl}}"], "path": ["api", "parent", "{{parentId}}", "dashboard"] },
+            "description": "Returns all approved children with level, XP, streak, identity and weekly summary."
+          }
+        },
+        {
+          "name": "Link Parent to Child",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{parentToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"parent_email\": \"parent@test.com\",\n    \"child_email\": \"child@test.com\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/parent/link", "host": ["{{baseUrl}}"], "path": ["api", "parent", "link"] },
+            "description": "Manually create a parent-child link by email."
+          }
+        }
+      ]
+    },
+    {
+      "name": "🛡️ Admin",
+      "item": [
+        {
+          "name": "List Users — All Children",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Users returned', () => pm.response.to.have.status(200));",
+                  "const res = pm.response.json();",
+                  "pm.test('Returns array', () => pm.expect(res).to.be.an('array'));",
+                  "console.log('Total children:', res.length);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/admin/users?role=CHILD&limit=10", "host": ["{{baseUrl}}"], "path": ["api", "admin", "users"], "query": [{ "key": "role", "value": "CHILD" }, { "key": "limit", "value": "10" }] },
+            "description": "List all users filtered by role. Admin only."
+          }
+        },
+        {
+          "name": "List Users — All Parents",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/admin/users?role=PARENT&limit=10", "host": ["{{baseUrl}}"], "path": ["api", "admin", "users"], "query": [{ "key": "role", "value": "PARENT" }, { "key": "limit", "value": "10" }] }
+          }
+        },
+        {
+          "name": "Create Mission",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const res = pm.response.json();",
+                  "    pm.collectionVariables.set('newMissionId', res.id);",
+                  "    pm.test('Mission created', () => pm.response.to.have.status(201));",
+                  "    pm.test('Has ID', () => pm.expect(res.id).to.be.a('string'));",
+                  "    console.log('New mission ID:', res.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"The School Election\",\n    \"narrative\": \"Two students are running for class monitor. You are the deciding vote. Who would you choose and why?\",\n    \"difficulty_level\": 3,\n    \"mission_type\": \"ANALYTICAL\",\n    \"rule_weight\": 0.3,\n    \"ai_weight\": 0.7,\n    \"scenario\": {\n        \"context\": \"Candidate A is very organized and responsible but quite strict. Candidate B is popular and friendly but sometimes forgetful. Both want to help the class. Who would you vote for and why? Think about what qualities make a good leader.\",\n        \"open_response\": true\n    }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/admin/missions", "host": ["{{baseUrl}}"], "path": ["api", "admin", "missions"] },
+            "description": "Create a new mission. New mission ID auto-saved to newMissionId variable."
+          }
+        },
+        {
+          "name": "Update Mission",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Mission updated', () => pm.response.to.have.status(200));",
+                  "const res = pm.response.json();",
+                  "pm.test('Cache invalidated message', () => pm.expect(res.message).to.include('Cache'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"The School Election — Updated\",\n    \"difficulty_level\": 4\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/admin/missions/{{newMissionId}}", "host": ["{{baseUrl}}"], "path": ["api", "admin", "missions", "{{newMissionId}}"] },
+            "description": "Update an existing mission. Uses newMissionId from Create Mission."
+          }
+        },
+        {
+          "name": "Deactivate Mission",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Mission deactivated', () => pm.response.to.have.status(204));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/admin/missions/{{newMissionId}}", "host": ["{{baseUrl}}"], "path": ["api", "admin", "missions", "{{newMissionId}}"] },
+            "description": "Soft-delete a mission (sets isActive = false). Uses newMissionId from Create Mission."
+          }
+        }
+      ]
+    },
+    {
+      "name": "❌ Error Cases",
+      "item": [
+        {
+          "name": "Wrong Password — 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Returns 401', () => pm.response.to.have.status(401));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n    \"email\": \"child@test.com\",\n    \"password\": \"wrongpassword\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] }
+          }
+        },
+        {
+          "name": "Duplicate Email — 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Returns 409', () => pm.response.to.have.status(409));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n    \"name\": \"Test Child\",\n    \"email\": \"child@test.com\",\n    \"password\": \"Test@1234\",\n    \"role\": \"CHILD\",\n    \"parentEmail\": \"parent@test.com\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/auth/register", "host": ["{{baseUrl}}"], "path": ["api", "auth", "register"] }
+          }
+        },
+        {
+          "name": "Mission Not Found — 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Returns 404', () => pm.response.to.have.status(404));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{childToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/missions/00000000-0000-0000-0000-000000000000", "host": ["{{baseUrl}}"], "path": ["api", "missions", "00000000-0000-0000-0000-000000000000"] }
+          }
+        },
+        {
+          "name": "Child Accessing Admin — 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Returns 403', () => pm.response.to.have.status(403));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{childToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/admin/users", "host": ["{{baseUrl}}"], "path": ["api", "admin", "users"] }
+          }
+        },
+        {
+          "name": "No Token — 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Returns 401 without token', () => pm.response.to.have.status(401));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/missions", "host": ["{{baseUrl}}"], "path": ["api", "missions"] }
+          }
+        },
+        {
+          "name": "Answer Too Short — 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Returns 400 for short answer', () => pm.response.to.have.status(400));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{childToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n    \"userId\": \"{{childId}}\",\n    \"missionId\": \"{{missionId}}\",\n    \"scenarioId\": \"{{scenarioId}}\",\n    \"answerText\": \"short\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/responses", "host": ["{{baseUrl}}"], "path": ["api", "responses"] }
+          }
+        }
+      ]
+    }
+  ]
+}
