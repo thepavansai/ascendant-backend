@@ -24,6 +24,10 @@ public class ProgressionLog {
     @JoinColumn(name = "mission_id", nullable = false)
     private Mission mission;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "response_id", nullable = true) // true for backward compatibility
+    private Response response;
+
     @Column(name = "xp_earned", nullable = false)
     private Integer xpEarned;
 

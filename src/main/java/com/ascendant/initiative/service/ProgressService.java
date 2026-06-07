@@ -61,6 +61,7 @@ public class ProgressService {
                 .levelBefore(levelBefore)
                 .levelAfter(newLevel)
                 .leveledUp(leveledUp)
+                .response(evaluation.getResponse())
                 .build();
         progressionLogRepository.save(log);
 

@@ -29,9 +29,18 @@ public class AuthService {
     private final ParentChildLinkRepository parentChildLinkRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final AdminAuthService adminAuthService;
 
     @Transactional
     public AuthResponse register(RegisterRequest req) {
+        if (req.getRole() == User.Role.ADMIN) {
+            throw AppException.badRequest("Admin accounts cannot be registered");
+        }
+
+        if (adminAuthService.isAdminEmail(req.getEmail())) {
+            throw AppException.conflict("Email already registered: " + req.getEmail());
+        }
+
         if (userRepository.existsByEmail(req.getEmail())) {
             throw AppException.conflict("Email already registered: " + req.getEmail());
         }
@@ -45,6 +54,7 @@ public class AuthService {
                 .email(req.getEmail())
                 .passwordHash(passwordEncoder.encode(req.getPassword()))
                 .role(req.getRole())
+                .requestedParentEmail(req.getRole() == User.Role.CHILD ? req.getParentEmail() : null)
                 .build();
         userRepository.save(user);
 
@@ -65,11 +75,31 @@ public class AuthService {
                 log.info("Created pending parent-child link: {} -> {}", req.getParentEmail(), user.getEmail());
             }
         }
+        
+        // If registering a parent, find any children who requested this email
+        if (req.getRole() == User.Role.PARENT) {
+            java.util.List<User> children = userRepository.findByRequestedParentEmail(req.getEmail());
+            for (User child : children) {
+                if (parentChildLinkRepository.findByParentIdAndChildId(user.getId(), child.getId()).isEmpty()) {
+                    ParentChildLink link = ParentChildLink.builder()
+                            .parent(user)
+                            .child(child)
+                            .approved(false)
+                            .build();
+                    parentChildLinkRepository.save(link);
+                    log.info("Created pending parent-child link from retroactive request: {} -> {}", user.getEmail(), child.getEmail());
+                }
+            }
+        }
 
         return buildAuthResponse(user);
     }
 
     public AuthResponse login(LoginRequest req) {
+        if (adminAuthService.isAdminEmail(req.getEmail())) {
+            return adminAuthService.authenticate(req.getEmail(), req.getPassword());
+        }
+
         User user = userRepository.findByEmail(req.getEmail())
                 .orElseThrow(() -> AppException.unauthorized("Invalid credentials"));
 
@@ -87,6 +117,9 @@ public class AuthService {
                 throw AppException.unauthorized("Invalid refresh token");
             }
             var userId = java.util.UUID.fromString(claims.getSubject());
+            if (adminAuthService.isAdminId(userId)) {
+                return adminAuthService.buildAdminAuthResponse();
+            }
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> AppException.unauthorized("User not found"));
             return buildAuthResponse(user);

@@ -23,4 +23,5 @@ public class PlayerProfileDto {
     private LocalDateTime lastActive;
     private Integer missionsCompleted;
     private Double averageScore;
+    private Boolean isApproved;
 }

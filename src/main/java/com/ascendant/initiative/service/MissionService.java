@@ -13,9 +13,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -29,6 +32,7 @@ public class MissionService {
     private final ResponseRepository responseRepository;
     private final EvaluationRepository evaluationRepository;
     private final MissionMapper missionMapper;
+    @Nullable
     private final RedisTemplate<String, Object> redisTemplate;
     private final ObjectMapper objectMapper;
 
@@ -36,6 +40,23 @@ public class MissionService {
     private long cacheTtl;
 
     private static final String CACHE_PREFIX = "mission:";
+    
+    // In-memory fallback cache when Redis is unavailable
+    private final Map<String, CacheEntry> memoryCache = new HashMap<>();
+
+    private static class CacheEntry {
+        MissionDetailDto dto;
+        long expireTime;
+
+        CacheEntry(MissionDetailDto dto, long ttlSeconds) {
+            this.dto = dto;
+            this.expireTime = System.currentTimeMillis() + (ttlSeconds * 1000);
+        }
+
+        boolean isExpired() {
+            return System.currentTimeMillis() > expireTime;
+        }
+    }
 
     public List<MissionSummaryDto> getAllForUser(UUID userId) {
         List<Mission> missions = missionRepository.findByIsActiveTrueOrderByDifficultyLevelAsc();
@@ -52,11 +73,24 @@ public class MissionService {
     public MissionDetailDto getById(UUID missionId) {
         String cacheKey = CACHE_PREFIX + missionId;
 
-        // Try Redis cache first
-        Object cached = redisTemplate.opsForValue().get(cacheKey);
-        if (cached != null) {
-            log.debug("Cache HIT for mission {}", missionId);
-            return objectMapper.convertValue(cached, MissionDetailDto.class);
+        // Try Redis cache first if available
+        if (redisTemplate != null) {
+            try {
+                Object cached = redisTemplate.opsForValue().get(cacheKey);
+                if (cached != null) {
+                    log.debug("Cache HIT (Redis) for mission {}", missionId);
+                    return objectMapper.convertValue(cached, MissionDetailDto.class);
+                }
+            } catch (Exception e) {
+                log.warn("Redis cache error for mission {}, falling back to memory cache", missionId, e);
+            }
+        }
+
+        // Try in-memory cache if Redis not available or failed
+        CacheEntry memEntry = memoryCache.get(cacheKey);
+        if (memEntry != null && !memEntry.isExpired()) {
+            log.debug("Cache HIT (Memory) for mission {}", missionId);
+            return memEntry.dto;
         }
 
         // Cache miss — fetch from DB
@@ -70,8 +104,19 @@ public class MissionService {
 
         MissionDetailDto dto = missionMapper.toDetail(mission);
 
-        // Populate Redis cache
-        redisTemplate.opsForValue().set(cacheKey, dto, cacheTtl, TimeUnit.SECONDS);
+        // Populate Redis cache if available
+        if (redisTemplate != null) {
+            try {
+                redisTemplate.opsForValue().set(cacheKey, dto, cacheTtl, TimeUnit.SECONDS);
+            } catch (Exception e) {
+                log.warn("Redis cache set error for mission {}, using memory cache instead", missionId, e);
+                memoryCache.put(cacheKey, new CacheEntry(dto, cacheTtl));
+            }
+        } else {
+            // Use in-memory cache as fallback
+            memoryCache.put(cacheKey, new CacheEntry(dto, cacheTtl));
+        }
+
         return dto;
     }
 
@@ -82,7 +127,18 @@ public class MissionService {
     }
 
     public void invalidateCache(UUID missionId) {
-        redisTemplate.delete(CACHE_PREFIX + missionId);
+        String cacheKey = CACHE_PREFIX + missionId;
+        
+        if (redisTemplate != null) {
+            try {
+                redisTemplate.delete(cacheKey);
+            } catch (Exception e) {
+                log.warn("Error invalidating Redis cache for mission {}", missionId, e);
+            }
+        }
+        
+        // Also clear memory cache
+        memoryCache.remove(cacheKey);
         log.info("Cache invalidated for mission {}", missionId);
     }
 

@@ -29,7 +29,7 @@ public class ParentService {
     @Transactional(readOnly = true)
     public Map<String, Object> getDashboard(UUID parentId) {
         List<ParentChildLink> links =
-                parentChildLinkRepository.findByParentIdAndApprovedTrue(parentId);
+                parentChildLinkRepository.findByParentId(parentId);
 
         List<Map<String, Object>> children = links.stream().map(link -> {
             User child = link.getChild();
@@ -41,16 +41,17 @@ public class ParentService {
                 weekly = playerService.getWeeklyStats(child.getId());
             } catch (Exception ignored) {}
 
-            return Map.<String, Object>of(
-                    "child_id",       child.getId(),
-                    "child_name",     child.getName(),
-                    "level",          profile != null ? profile.getLevel() : 1,
-                    "xp",             profile != null ? profile.getXp() : 0,
-                    "streak_days",    profile != null ? profile.getStreakDays() : 0,
-                    "last_active",    profile != null ? profile.getLastActive() : null,
-                    "identity_type",  profile != null ? profile.getIdentityType() : null,
-                    "weekly_summary", weekly
-            );
+            Map<String, Object> childMap = new java.util.HashMap<>();
+            childMap.put("child_id", child.getId());
+            childMap.put("child_name", child.getName());
+            childMap.put("level", profile != null ? profile.getLevel() : 1);
+            childMap.put("xp", profile != null ? profile.getXp() : 0);
+            childMap.put("streak_days", profile != null ? profile.getStreakDays() : 0);
+            childMap.put("last_active", profile != null ? profile.getLastActive() : null);
+            childMap.put("identity_type", profile != null ? profile.getIdentityType() : null);
+            childMap.put("is_approved", link.getApproved());
+            childMap.put("weekly_summary", weekly);
+            return childMap;
         }).toList();
 
         return Map.of("parent_id", parentId, "children", children);

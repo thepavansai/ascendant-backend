@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS users (
     email         VARCHAR(255) NOT NULL UNIQUE,
     password_hash TEXT         NOT NULL,
     role          VARCHAR(20)  NOT NULL DEFAULT 'CHILD',
+    requested_parent_email VARCHAR(255),
     created_at    TIMESTAMP    NOT NULL DEFAULT NOW(),
     updated_at    TIMESTAMP    NOT NULL DEFAULT NOW()
 );
@@ -142,6 +143,7 @@ CREATE TABLE IF NOT EXISTS progression_logs (
     id           UUID      PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id      UUID      NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     mission_id   UUID      NOT NULL REFERENCES missions(id),
+    response_id  UUID      REFERENCES responses(id),
     xp_earned    INTEGER   NOT NULL DEFAULT 0,
     final_score  FLOAT,
     level_before INTEGER   NOT NULL DEFAULT 1,

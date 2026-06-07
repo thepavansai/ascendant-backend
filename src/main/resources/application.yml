@@ -14,7 +14,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: update
     show-sql: false
     properties:
       hibernate:
@@ -28,9 +28,9 @@ spring:
 
   data:
     redis:
-      host: ${REDIS_HOST}
+      host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD}
+      password: ${REDIS_PASSWORD:}
       timeout: 2000ms
       lettuce:
         pool:
@@ -49,6 +49,13 @@ server:
     include-binding-errors: always
 
 app:
+  redis:
+    enabled: ${REDIS_ENABLED:true}
+
+  admin:
+    email: ${ADMIN_EMAIL:admin@ascendant.local}
+    password: ${ADMIN_PASSWORD:change-me-in-production}
+
   jwt:
     secret: ${JWT_SECRET}
     access-token-expiry-ms: 900000       # 15 minutes

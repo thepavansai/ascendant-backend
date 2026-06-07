@@ -11,6 +11,7 @@ import java.util.UUID;
 @Repository
 public interface ParentChildLinkRepository extends JpaRepository<ParentChildLink, UUID> {
     List<ParentChildLink> findByParentIdAndApprovedTrue(UUID parentId);
+    List<ParentChildLink> findByParentId(UUID parentId);
     Optional<ParentChildLink> findByParentIdAndChildId(UUID parentId, UUID childId);
     Optional<ParentChildLink> findByChildId(UUID childId);
 }

@@ -15,6 +15,8 @@ public class EvaluationResultDto {
     private Integer xpEarned;
     private Boolean leveledUp;
     private Integer newLevel;
+    private String answerText;
+    private String selectedChoice;
 
     @Data @Builder
     public static class EvaluationDto {

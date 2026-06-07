@@ -53,6 +53,7 @@ public class AdminController {
                     .mission(mission)
                     .context((String) scenarioBody.get("context"))
                     .openResponse(Boolean.TRUE.equals(scenarioBody.get("open_response")))
+                    .choices((List<Map<String, String>>) scenarioBody.get("choices"))
                     .orderIndex(1)
                     .build();
             scenarioRepository.save(scenario);
@@ -81,6 +82,31 @@ public class AdminController {
             mission.setDifficultyLevel((Integer) body.get("difficulty_level"));
         if (body.containsKey("is_active"))
             mission.setIsActive((Boolean) body.get("is_active"));
+        if (body.containsKey("mission_type"))
+            mission.setMissionType(Mission.MissionType.valueOf((String) body.get("mission_type")));
+        if (body.containsKey("rule_weight"))
+            mission.setRuleWeight(((Number) body.get("rule_weight")).doubleValue());
+        if (body.containsKey("ai_weight"))
+            mission.setAiWeight(((Number) body.get("ai_weight")).doubleValue());
+
+        missionRepository.save(mission);
+        
+        // Update scenario if provided
+        if (body.containsKey("scenario")) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> scenarioBody = (Map<String, Object>) body.get("scenario");
+            Scenario scenario = scenarioRepository.findByMissionId(mission.getId())
+                    .orElseGet(() -> Scenario.builder().mission(mission).orderIndex(1).build());
+            
+            if (scenarioBody.containsKey("context"))
+                scenario.setContext((String) scenarioBody.get("context"));
+            if (scenarioBody.containsKey("open_response"))
+                scenario.setOpenResponse(Boolean.TRUE.equals(scenarioBody.get("open_response")));
+            if (scenarioBody.containsKey("choices"))
+                scenario.setChoices((List<Map<String, String>>) scenarioBody.get("choices"));
+                
+            scenarioRepository.save(scenario);
+        }
 
         missionRepository.save(mission);
         missionService.invalidateCache(id);

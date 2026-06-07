@@ -108,3 +108,7 @@ docker-compose.override.yml
 *.swp
 *.swo
 *~
+
+# Local runtime / generated folders
+.local-pg/
+bin/

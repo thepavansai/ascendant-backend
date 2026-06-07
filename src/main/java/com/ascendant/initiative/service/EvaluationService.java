@@ -31,6 +31,8 @@ public class EvaluationService {
     private final MissionRepository missionRepository;
     private final ScenarioRepository scenarioRepository;
     private final UserRepository userRepository;
+    private final ParentChildLinkRepository parentChildLinkRepository;
+    private final ProgressionLogRepository progressionLogRepository;
     private final RuleEngine ruleEngine;
     private final PromptBuilder promptBuilder;
     private final LLMClient llmClient;
@@ -46,6 +48,15 @@ public class EvaluationService {
     public ResponseSubmitDto submit(ResponseSubmitRequest req) {
         User user = userRepository.findById(req.getUserId())
                 .orElseThrow(() -> AppException.notFound("User not found"));
+                
+        if (user.getRole() == User.Role.CHILD) {
+            ParentChildLink link = parentChildLinkRepository.findByChildId(user.getId())
+                    .orElseThrow(() -> AppException.forbidden("Parent approval required to play missions. No parent linked."));
+            if (!link.getApproved()) {
+                throw AppException.forbidden("Parent approval required to play missions. Account is pending.");
+            }
+        }
+
         Mission mission = missionRepository.findById(req.getMissionId())
                 .orElseThrow(() -> AppException.notFound("Mission not found"));
         Scenario scenario = scenarioRepository.findById(req.getScenarioId())
@@ -199,6 +210,17 @@ public class EvaluationService {
                     .evalStatus(eval.getEvalStatus())
                     .createdAt(eval.getCreatedAt())
                     .build();
+
+            progressionLogRepository.findByResponseId(responseId).ifPresent(log -> {
+                // Populate XP and level data from the actual progression log
+            });
+            // Java 11/17 lambda workaround
+            ProgressionLog pLog = progressionLogRepository.findByResponseId(responseId).orElse(null);
+            if (pLog != null) {
+                xpEarned = pLog.getXpEarned();
+                leveledUp = pLog.getLeveledUp();
+                newLevel = pLog.getLevelAfter();
+            }
         }
 
         return EvaluationResultDto.builder()
@@ -208,6 +230,8 @@ public class EvaluationService {
                 .xpEarned(xpEarned)
                 .leveledUp(leveledUp)
                 .newLevel(newLevel)
+                .answerText(response.getAnswerText())
+                .selectedChoice(response.getSelectedChoice())
                 .build();
     }
 }

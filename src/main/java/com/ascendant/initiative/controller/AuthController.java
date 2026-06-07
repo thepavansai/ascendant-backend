@@ -1,8 +1,10 @@
 package com.ascendant.initiative.controller;
 
+import com.ascendant.initiative.dto.auth.AdminLoginRequest;
 import com.ascendant.initiative.dto.auth.AuthResponse;
 import com.ascendant.initiative.dto.auth.LoginRequest;
 import com.ascendant.initiative.dto.auth.RegisterRequest;
+import com.ascendant.initiative.service.AdminAuthService;
 import com.ascendant.initiative.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +20,7 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthService authService;
+    private final AdminAuthService adminAuthService;
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest req) {
@@ -43,5 +46,10 @@ public class AuthController {
         // Stateless JWT: client discards token. 
         // In v2: add a token blacklist via Redis.
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/admin-login")
+    public ResponseEntity<AuthResponse> adminLogin(@Valid @RequestBody AdminLoginRequest req) {
+        return ResponseEntity.ok(adminAuthService.adminLogin(req));
     }
 }

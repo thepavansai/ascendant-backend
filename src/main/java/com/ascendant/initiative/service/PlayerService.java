@@ -7,6 +7,7 @@ import com.ascendant.initiative.repository.EvaluationRepository;
 import com.ascendant.initiative.repository.PlayerProfileRepository;
 import com.ascendant.initiative.repository.ProgressionLogRepository;
 import com.ascendant.initiative.repository.ResponseRepository;
+import com.ascendant.initiative.repository.ParentChildLinkRepository;
 import com.ascendant.initiative.util.XpCalculator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +29,7 @@ public class PlayerService {
     private final ProgressionLogRepository progressionLogRepository;
     private final ResponseRepository responseRepository;
     private final EvaluationRepository evaluationRepository;
+    private final ParentChildLinkRepository parentChildLinkRepository;
     private final XpCalculator xpCalculator;
 
     @Transactional(readOnly = true)
@@ -53,6 +55,9 @@ public class PlayerService {
                 .lastActive(profile.getLastActive())
                 .missionsCompleted(missionsCompleted)
                 .averageScore(round(averageScore))
+                .isApproved(parentChildLinkRepository.findByChildId(userId)
+                        .map(link -> link.getApproved())
+                        .orElse(false))
                 .build();
     }
 
@@ -70,6 +75,7 @@ public class PlayerService {
                         "level_before",  log.getLevelBefore(),
                         "level_after",   log.getLevelAfter(),
                         "leveled_up",    log.getLeveledUp(),
+                        "response_id",   log.getResponse() != null ? log.getResponse().getId() : null,
                         "created_at",    log.getCreatedAt()
                 ))
                 .toList();

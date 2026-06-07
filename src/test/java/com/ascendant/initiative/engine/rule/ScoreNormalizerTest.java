@@ -40,4 +40,9 @@ class ScoreNormalizerTest {
     void negativeClamp() {
         assertThat(normalizer.normalize(-1.0, -1.0, -1.0, -1.0)).isEqualTo(0.0);
     }
+
+    @Test @DisplayName("Values greater than 1.0 are clamped to 1.0")
+    void upperClamp() {
+        assertThat(normalizer.normalize(1.5, 2.0, 1.1, 5.0)).isEqualTo(1.0);
+    }
 }
