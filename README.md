@@ -2,6 +2,9 @@
 
 > *A gamified cognitive training platform that turns thinking into an adventure for kids aged 9–12.*
 
+**🌍 Live Frontend:** [ascendantt.netlify.app](https://ascendantt.netlify.app)  
+**⚙️ Live Backend:** [ascendant-backend.onrender.com](https://ascendant-backend.onrender.com)  
+
 [![Java](https://img.shields.io/badge/Java-21-orange?style=flat-square&logo=java)](https://openjdk.org/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.5-brightgreen?style=flat-square&logo=springboot)](https://spring.io/projects/spring-boot)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue?style=flat-square&logo=postgresql)](https://www.postgresql.org/)
@@ -117,16 +120,15 @@ DB_NAME=ascendant
 DB_USER=ascendant_user
 DB_PASSWORD=your_db_password
 DB_PORT=5432
-DB_URL=jdbc:postgresql://localhost:5432/ascendant
-DB_USER=ascendant_user
-DB_PASSWORD=ascendant_pass
-REDIS_HOST=localhost
-REDIS_PASSWORD=ascendant_redis
+DB_URL=jdbc:postgresql://ep-your-db.us-east-1.aws.neon.tech/neondb?sslmode=require
+DB_USER=neondb_owner
+DB_PASSWORD=your_neon_password
+REDIS_ENABLED=false
 JWT_SECRET=<generate with: openssl rand -base64 64>
 CLAUDE_API_KEY=<your API key>
 AI_API_URL=https://api.groq.com/openai/v1/chat/completions
 AI_MODEL=openai/gpt-oss-120b
-FRONTEND_URL=http://localhost:3000
+FRONTEND_URL=https://ascendantt.netlify.app
 ```
 
 ### 3. Start infrastructure
@@ -267,15 +269,20 @@ ascendant-backend/
 
 ## 🌱 Seed Data
 
-The app ships with **5 real-world thinking missions** out of the box:
+The app ships with **10 real-world thinking missions** out of the box, perfectly balanced between objective analysis and free-form logic:
 
 | # | Mission | Type | Difficulty |
 |---|---------|------|------------|
-| 1 | 🌉 The Broken Bridge | FACTUAL | ⭐ |
-| 2 | 🍋 The Lemonade Stand | ANALYTICAL | ⭐⭐ |
-| 3 | 🤖 The AI Assistant | OPEN_ENDED | ⭐⭐ |
-| 4 | 🏫 The Crowded Classroom | ANALYTICAL | ⭐⭐⭐ |
-| 5 | 💧 The Village Water Problem | OPEN_ENDED | ⭐⭐⭐⭐ |
+| 1 | 🚀 The Cosmic Dilemma | ANALYTICAL | ⭐⭐⭐ |
+| 2 | 🦠 Cyber City Defender | FACTUAL | ⭐⭐ |
+| 3 | ⚗️ Martian Botanist | ANALYTICAL | ⭐⭐⭐ |
+| 4 | 🤖 The Robot Interpreter | FACTUAL | ⭐ |
+| 5 | 🔐 Quantum Code Breaker | ANALYTICAL | ⭐⭐⭐⭐ |
+| 6 | 🌊 Ocean Rescue Drone | OPEN_ENDED | ⭐⭐ |
+| 7 | 🏛️ The Lost Pharaoh's Tomb | OPEN_ENDED | ⭐⭐⭐⭐ |
+| 8 | ⏳ Time Traveler's Paradox | OPEN_ENDED | ⭐⭐⭐⭐⭐ |
+| 9 | 🌴 Amazon Jungle Survival | OPEN_ENDED | ⭐⭐⭐ |
+| 10 | 👽 The Galactic Council | OPEN_ENDED | ⭐⭐⭐⭐⭐ |
 
 ---
 
