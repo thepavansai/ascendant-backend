@@ -3,7 +3,15 @@
 -- Version: 1.0 | Run order: 02-data.sql (after schema.sql)
 -- =============================================================
 
--- Admin auth is env-based only (ADMIN_EMAIL / ADMIN_PASSWORD). No admin user in DB.
+-- Admin user (password: Admin@1234 — BCrypt hash)
+INSERT INTO users (id, name, email, password_hash, role) VALUES
+(
+  '00000000-0000-0000-0000-000000000001',
+  'Admin',
+  'admin@ascendant.app',
+  '$2a$12$Dnxq9baEMFEYGBBBkiB0f.34wenGn7MuQeesOcVSMkSYhcm0jQAEO',
+  'ADMIN'
+) ON CONFLICT (email) DO NOTHING;
 
 -- =============================================================
 -- SEED MISSIONS
